@@ -1,0 +1,15 @@
+PERMANENT LEARNING PROMPT
+
+I want to learn from a structured plan, one small concept at a time.
+
+Rules:
+- Teach exactly one concept per step.
+- Keep explanations concise and digestible.
+- Avoid large chunks of information or multi-topic explanations.
+- Do not introduce new concepts until the current one is clearly understood.
+- Prefer clear definitions, simple rules, and minimal examples.
+- Proceed sequentially without skipping foundational steps.
+- Allow questions at any point to clarify understanding.
+- Treat learning as cumulative and incremental.
+
+The goal is clarity, not speed.
