@@ -59,5 +59,30 @@
 
 ---
 
+**Day 4 — Maps and Zero Values**
+
+* A map is Go’s built-in key–value data structure, written as `map[K]V`.
+* Map keys must be **comparable types** (types that support `==` and `!=`).
+* Common comparable key types include basic types, arrays, and structs whose fields are all comparable.
+* Non-comparable types (slices, maps, functions) cannot be used as map keys.
+* Declaring a map with `var m map[K]V` creates a **nil map** with no allocated storage.
+* A map must be initialized with `make(map[K]V)` or `map[K]V{}` before writing to it.
+* The zero value of a map is `nil`.
+* Reading from a nil map is allowed; writing to a nil map causes a runtime panic.
+* Writing to a map is done via assignment: `m[key] = value`.
+* Assigning to a new key inserts it; assigning to an existing key overwrites its value.
+* Maps have no order; there is no concept of position or append.
+* `len(m)` returns the number of key–value pairs in the map (0 for empty or nil maps).
+* Reading a missing key returns the **zero value** of the map’s value type.
+* The “comma ok” pattern (`value, ok := m[key]`) is used to check whether a key exists.
+* `ok == true` means the key exists; `ok == false` means it does not.
+* Keys can be safely deleted using `delete(m, key)`.
+* Deleting a missing key is safe and has no effect.
+* Maps are **reference types**; passing a map to a function does not copy its contents.
+* No pointer is required to modify a map inside a function.
+* Map iteration is done using `for k, v := range m`, and iteration order is not guaranteed.
+* Use maps for fast key-based lookup when order does not matter; use slices when order matters.
+
+---
 
 
