@@ -1,0 +1,158 @@
+DAY 8 — TESTING (focus: unit tests for Exercise 10)
+
+Goal
+- Be able to write clean unit tests for package-level logic using fakes.
+- Specifically: finish Exercise 10 tests for service.AddStock using a FakeStore.
+
+What you will learn today (in order)
+1) The Go test runner
+- Tests live in files named: *_test.go
+- A test function signature is: func TestXxx(t *testing.T)
+- Run all tests:     go test ./...
+- Run one package:   go test ./internal/service
+- Run one test:      go test ./internal/service -run TestAddStock
+- Verbose output:    go test -v ./...
+- Race detector:     go test -race ./...
+- Coverage:          go test -cover ./...
+
+2) What a “unit test” is in Go terms
+- Unit test = test one function/method’s behavior with dependencies replaced (fakes).
+- Avoid real network, real files, real DBs in unit tests.
+
+3) Arrange / Act / Assert (AAA) and “one reason to fail”
+- Arrange: build inputs + fake dependencies
+- Act: call the function under test
+- Assert: check results AND check the fake was used correctly
+- Keep each test verifying one behavior.
+
+4) Table-driven tests + subtests (standard Go pattern)
+- Create a slice of test cases and loop them with t.Run(name, func(t *testing.T){...})
+- This lets you add new cases with minimal repetition.
+
+5) Fakes for interfaces (Exercise 10)
+- You already have:
+  - store.Store interface: Get(id int) (Item, bool), Put(Item) error
+  - service.Service with store.Store injected
+- A FakeStore should:
+  - Return controlled values from Get
+  - Record that Put was called (and with what Item)
+  - Optionally return a controlled error from Put
+
+6) Helpful testing helpers
+- t.Helper() for helper functions so failures point to the caller.
+- Fatal vs Error:
+  - t.Fatalf / t.Fatal stops the test immediately.
+  - t.Errorf records failure and continues.
+- Use reflect.DeepEqual only when needed; prefer explicit field comparisons.
+
+-----------------------------------------------------------------------
+Checklist for Exercise 10 tests
+-----------------------------------------------------------------------
+You must write at least:
+A) Success test:
+- Given: item exists with Count = X
+- When: AddStock(id, delta) where delta > 0
+- Then:
+  - no error
+  - Put called exactly once
+  - Put received Item with Count = X + delta (and same ID/Name)
+
+B) Error test: delta invalid
+- Given: anything (store should not be called)
+- When: AddStock(id, delta<=0)
+- Then:
+  - error
+  - Get NOT called
+  - Put NOT called
+
+C) Error test: item not found
+- Given: Get returns (zero, false)
+- When: AddStock(id, delta>0)
+- Then:
+  - error
+  - Put NOT called
+
+D) Error test: store.Put fails
+- Given: Get returns (item, true) and Put returns err
+- When: AddStock(id, delta>0)
+- Then:
+  - error
+  - Put called once with the updated item
+
+-----------------------------------------------------------------------
+Reference FakeStore shape (you should implement something like this)
+-----------------------------------------------------------------------
+- type FakeStore struct {
+    GetItem   Item
+    GetOK     bool
+    PutErr    error
+
+    GetCalls  int
+    PutCalls  int
+    PutItems  []Item
+  }
+
+- func (f *FakeStore) Get(id int) (Item, bool) {
+    f.GetCalls++
+    return f.GetItem, f.GetOK
+  }
+
+- func (f *FakeStore) Put(it Item) error {
+    f.PutCalls++
+    f.PutItems = append(f.PutItems, it)
+    return f.PutErr
+  }
+
+Assertions you should make in tests:
+- if fake.GetCalls != expected { t.Fatalf(...) }
+- if fake.PutCalls != expected { t.Fatalf(...) }
+- if len(fake.PutItems) != expected { t.Fatalf(...) }
+- if fake.PutItems[0].Count != expected { t.Fatalf(...) }
+
+-----------------------------------------------------------------------
+Exercises (do all)
+-----------------------------------------------------------------------
+1) Minimal sanity test
+- Create /internal/service/service_test.go
+- Write TestSanity that just does: if 1+1 != 2 { t.Fatal(...) }
+- Purpose: confirm go test is wired and package imports are correct.
+
+2) Write FakeStore
+- Implement FakeStore in the *_test.go file (test-only is fine).
+- Ensure it satisfies the store.Store interface.
+
+3) Write AddStock tests (table-driven)
+- One table with at least these cases:
+  - success
+  - delta <= 0
+  - item not found
+  - put fails
+- Use t.Run per case.
+
+4) Add “dependency usage” assertions
+- Ensure your tests verify whether Get/Put were called (or not called) correctly.
+- This is the main value of fakes.
+
+5) Run all quality gates
+- go test ./...
+- go test -v ./...
+- go test -race ./...
+
+-----------------------------------------------------------------------
+Common mistakes to avoid
+-----------------------------------------------------------------------
+- Writing tests that only check “err != nil” but not whether store methods were called correctly.
+- Using a real store implementation in unit tests for the service package (that becomes an integration test).
+- Forgetting to assert Put received the updated Count (this is the actual business behavior).
+- Sharing one FakeStore instance across subtests without resetting it (leaks state across tests).
+
+-----------------------------------------------------------------------
+If you want one extra (optional)
+-----------------------------------------------------------------------
+- Add a helper like:
+  func mustErr(t *testing.T, err error) { t.Helper(); if err == nil { t.Fatal("expected error") } }
+- This keeps tests readable.
+
+End condition for Day 8
+- Exercise 10 tests are written and green.
+- Race detector run passes: go test -race ./...
